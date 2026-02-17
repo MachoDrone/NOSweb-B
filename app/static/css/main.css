@@ -1,5 +1,5 @@
 /* ============================================
-   Nosana Host Dashboard - Core Layout & Theme
+   Nosana CoreLink - Core Layout & Theme
    ============================================ */
 
 :root {
@@ -12,12 +12,12 @@
     --text-secondary: #8892a6;
     --text-muted: #5c6478;
     --border-color: #2d3548;
-    --accent: #00d1b2;
-    --accent-hover: #00e5c4;
-    --fill-ok: #00d1b2;
+    --accent: #2e7d32;
+    --accent-hover: #388e3c;
+    --fill-ok: #2e7d32;
     --fill-warn: #ffdd57;
     --fill-danger: #ff3860;
-    --status-running: #00d1b2;
+    --status-running: #2e7d32;
     --status-stopped: #ff3860;
     --status-paused: #ffdd57;
     --nav-height: 56px;

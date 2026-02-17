@@ -1,4 +1,4 @@
-# Nosana Host Dashboard
+# Nosana CoreLink
 
 A lightweight, modular web dashboard for Nosana GPU host operators. Runs as a single Docker container -- zero packages installed on your host OS.
 
@@ -68,8 +68,9 @@ app/
 ## Manual Docker Run
 
 ```bash
+docker build -t nosana-corelink .
 docker run -d \
-  --name nosana-dashboard \
+  --name nosana-corelink \
   --restart unless-stopped \
   --pid=host \
   -p 0.0.0.0:8585:8585 \
@@ -77,12 +78,12 @@ docker run -d \
   -v /etc/hostname:/etc/host_hostname:ro \
   --gpus all \
   -e NOSWEB_HAS_GPU=true \
-  ghcr.io/machodrone/nosweb:latest
+  nosana-corelink:latest
 ```
 
 ## Updating
 
-Re-run the install command. It stops the old container, pulls the latest image, and launches fresh:
+Re-run the install command. It stops the old container, builds the latest source, and launches fresh:
 
 ```bash
 bash <(wget -qO- https://raw.githubusercontent.com/MachoDrone/NOSweb-B/main/install.sh)

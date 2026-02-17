@@ -2,12 +2,12 @@
 set -euo pipefail
 
 # ============================================================
-# Nosana Host Dashboard - Bootstrap Installer
+# Nosana CoreLink - Bootstrap Installer
 # Launched via: bash <(wget -qO- https://raw.githubusercontent.com/MachoDrone/NOSweb-B/main/install.sh)
 # ============================================================
 
-DASHBOARD_IMAGE="nosana-dashboard:latest"
-CONTAINER_NAME="nosana-dashboard"
+DASHBOARD_IMAGE="nosana-corelink:latest"
+CONTAINER_NAME="nosana-corelink"
 DASHBOARD_PORT="${NOSWEB_PORT:-8585}"
 DOCKER_SOCKET="/var/run/docker.sock"
 REPO_TARBALL="https://github.com/MachoDrone/NOSweb-B/archive/refs/heads/main.tar.gz"
@@ -114,7 +114,7 @@ launch_dashboard() {
         GPU_FLAGS="--gpus all"
     fi
 
-    info "Launching Nosana Host Dashboard..."
+    info "Launching Nosana CoreLink..."
     docker run -d \
         --name "${CONTAINER_NAME}" \
         --restart unless-stopped \
@@ -136,7 +136,7 @@ launch_dashboard() {
 main() {
     echo ""
     echo -e "${CYAN}╔═══════════════════════════════════════╗${NC}"
-    echo -e "${CYAN}║   Nosana Host Dashboard Installer     ║${NC}"
+    echo -e "${CYAN}║   Nosana CoreLink Installer           ║${NC}"
     echo -e "${CYAN}╚═══════════════════════════════════════╝${NC}"
     echo ""
 
