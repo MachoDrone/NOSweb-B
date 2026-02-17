@@ -1,0 +1,29 @@
+<nav class="nav-bar">
+    <div class="nav-brand">
+        <span class="nav-logo">N</span>
+        <span class="nav-title">Nosana Dashboard</span>
+    </div>
+    <div class="nav-tabs">
+        <button class="nav-tab" :class="{ 'active': activeTab === 'overview' }"
+                @click="switchTab('overview')">
+            Overview
+        </button>
+        <button class="nav-tab" :class="{ 'active': activeTab === 'logs' }"
+                @click="switchTab('logs')">
+            Docker Logs
+        </button>
+        <button class="nav-tab" :class="{ 'active': activeTab === 'gpu' }"
+                @click="switchTab('gpu')">
+            GPU Stats
+        </button>
+        <button class="nav-tab" :class="{ 'active': activeTab === 'commands' }"
+                @click="switchTab('commands')">
+            Commands
+        </button>
+    </div>
+    <div class="nav-actions">
+        <button class="btn-icon" @click="toggleDark()" :title="darkMode ? 'Light mode' : 'Dark mode'">
+            <span x-text="darkMode ? '&#9788;' : '&#9790;'"></span>
+        </button>
+    </div>
+</nav>

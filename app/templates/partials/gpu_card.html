@@ -1,0 +1,60 @@
+<div class="gpu-card">
+    <h3 class="gpu-card-name" x-text="gpu.name"></h3>
+    <div class="gpu-meters">
+        <div class="meter-row">
+            <span class="meter-label">Temp</span>
+            <div class="meter-track">
+                <div class="meter-fill" :style="'width:' + Math.min(gpu.temperature_c, 100) + '%'"
+                     :class="{
+                         'fill-ok': gpu.temperature_c < 65,
+                         'fill-warn': gpu.temperature_c >= 65 && gpu.temperature_c < 80,
+                         'fill-danger': gpu.temperature_c >= 80
+                     }"></div>
+            </div>
+            <span class="meter-value" x-text="gpu.temperature_c + '\u00B0C'"></span>
+        </div>
+        <div class="meter-row">
+            <span class="meter-label">GPU</span>
+            <div class="meter-track">
+                <div class="meter-fill" :style="'width:' + gpu.gpu_utilization_pct + '%'"
+                     :class="{
+                         'fill-ok': gpu.gpu_utilization_pct < 60,
+                         'fill-warn': gpu.gpu_utilization_pct >= 60 && gpu.gpu_utilization_pct < 85,
+                         'fill-danger': gpu.gpu_utilization_pct >= 85
+                     }"></div>
+            </div>
+            <span class="meter-value" x-text="gpu.gpu_utilization_pct + '%'"></span>
+        </div>
+        <div class="meter-row">
+            <span class="meter-label">VRAM</span>
+            <div class="meter-track">
+                <div class="meter-fill" :style="'width:' + gpu.memory_utilization_pct + '%'"
+                     :class="{
+                         'fill-ok': gpu.memory_utilization_pct < 60,
+                         'fill-warn': gpu.memory_utilization_pct >= 60 && gpu.memory_utilization_pct < 85,
+                         'fill-danger': gpu.memory_utilization_pct >= 85
+                     }"></div>
+            </div>
+            <span class="meter-value" x-text="gpu.memory_used_mb + '/' + gpu.memory_total_mb + ' MB'"></span>
+        </div>
+        <div class="meter-row">
+            <span class="meter-label">Power</span>
+            <div class="meter-track">
+                <div class="meter-fill" :style="'width:' + (gpu.power_draw_w / gpu.power_limit_w * 100) + '%'"
+                     :class="{
+                         'fill-ok': (gpu.power_draw_w / gpu.power_limit_w) < 0.6,
+                         'fill-warn': (gpu.power_draw_w / gpu.power_limit_w) >= 0.6 && (gpu.power_draw_w / gpu.power_limit_w) < 0.85,
+                         'fill-danger': (gpu.power_draw_w / gpu.power_limit_w) >= 0.85
+                     }"></div>
+            </div>
+            <span class="meter-value" x-text="gpu.power_draw_w + '/' + gpu.power_limit_w + ' W'"></span>
+        </div>
+        <div class="meter-row" x-show="gpu.fan_speed_pct !== null">
+            <span class="meter-label">Fan</span>
+            <div class="meter-track">
+                <div class="meter-fill fill-ok" :style="'width:' + (gpu.fan_speed_pct || 0) + '%'"></div>
+            </div>
+            <span class="meter-value" x-text="(gpu.fan_speed_pct || 0) + '%'"></span>
+        </div>
+    </div>
+</div>

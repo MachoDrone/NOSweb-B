@@ -1,0 +1,98 @@
+<div x-show="activeTab === 'overview'" x-data="overviewPage()" x-init="startPolling()" @tab-changed.window="activeTab === 'overview' ? startPolling() : stopPolling()">
+    <h2 class="page-title">System Overview</h2>
+
+    <div class="stat-grid">
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <span class="stat-card-title">CPU</span>
+                <span class="stat-card-value" x-text="stats.cpu ? stats.cpu.percent + '%' : '--'"></span>
+            </div>
+            <div class="stat-card-bar">
+                <div class="stat-card-fill" :style="'width:' + (stats.cpu ? stats.cpu.percent : 0) + '%'"
+                     :class="{
+                         'fill-ok': !stats.cpu || stats.cpu.percent < 60,
+                         'fill-warn': stats.cpu && stats.cpu.percent >= 60 && stats.cpu.percent < 85,
+                         'fill-danger': stats.cpu && stats.cpu.percent >= 85
+                     }"></div>
+            </div>
+            <div class="stat-card-detail" x-text="stats.cpu ? (stats.cpu.count_logical + ' cores' + (stats.cpu.freq_mhz ? ' @ ' + Math.round(stats.cpu.freq_mhz) + ' MHz' : '')) : 'Loading...'"></div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <span class="stat-card-title">Memory</span>
+                <span class="stat-card-value" x-text="stats.memory ? stats.memory.percent + '%' : '--'"></span>
+            </div>
+            <div class="stat-card-bar">
+                <div class="stat-card-fill" :style="'width:' + (stats.memory ? stats.memory.percent : 0) + '%'"
+                     :class="{
+                         'fill-ok': !stats.memory || stats.memory.percent < 60,
+                         'fill-warn': stats.memory && stats.memory.percent >= 60 && stats.memory.percent < 85,
+                         'fill-danger': stats.memory && stats.memory.percent >= 85
+                     }"></div>
+            </div>
+            <div class="stat-card-detail" x-text="stats.memory ? stats.memory.used_gb + ' / ' + stats.memory.total_gb + ' GB' : 'Loading...'"></div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <span class="stat-card-title">Disk</span>
+                <span class="stat-card-value" x-text="stats.disk ? stats.disk.percent + '%' : '--'"></span>
+            </div>
+            <div class="stat-card-bar">
+                <div class="stat-card-fill" :style="'width:' + (stats.disk ? stats.disk.percent : 0) + '%'"
+                     :class="{
+                         'fill-ok': !stats.disk || stats.disk.percent < 60,
+                         'fill-warn': stats.disk && stats.disk.percent >= 60 && stats.disk.percent < 85,
+                         'fill-danger': stats.disk && stats.disk.percent >= 85
+                     }"></div>
+            </div>
+            <div class="stat-card-detail" x-text="stats.disk ? stats.disk.used_gb + ' / ' + stats.disk.total_gb + ' GB (' + stats.disk.free_gb + ' GB free)' : 'Loading...'"></div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>Host Info</h3>
+        <div class="info-grid">
+            <div class="info-item">
+                <span class="info-label">Hostname</span>
+                <span class="info-value" x-text="stats.hostname || '--'"></span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">OS</span>
+                <span class="info-value" x-text="stats.os || '--'"></span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Uptime</span>
+                <span class="info-value" x-text="formatUptime(stats.uptime_seconds)"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>Docker Containers</h3>
+        <div class="container-list">
+            <template x-if="containers.length === 0">
+                <div class="empty-state">No containers found</div>
+            </template>
+            <template x-for="c in containers" :key="c.id">
+                <div class="container-row">
+                    <span class="container-status" :class="'status-' + c.status" x-text="c.status"></span>
+                    <span class="container-name" x-text="c.name"></span>
+                    <span class="container-image" x-text="c.image"></span>
+                </div>
+            </template>
+        </div>
+    </div>
+
+    <template x-if="gpuDevices.length > 0">
+        <div class="section">
+            <h3>GPU Summary</h3>
+            <div class="gpu-grid">
+                <template x-for="gpu in gpuDevices" :key="gpu.index">
+                    {% include "partials/gpu_card.html" %}
+                </template>
+            </div>
+        </div>
+    </template>
+</div>

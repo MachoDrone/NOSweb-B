@@ -1,0 +1,6 @@
+<div class="log-output" x-ref="logOutput">
+    <pre class="log-pre"><template x-for="(line, i) in lines" :key="i"><span class="log-line" x-text="line"></span></template></pre>
+    <div x-show="lines.length === 0" class="log-empty">
+        Select a container to view logs...
+    </div>
+</div>

@@ -1,0 +1,27 @@
+<div x-show="activeTab === 'gpu'" x-data="gpuMonitor()" x-init="connect()"
+     @tab-changed.window="activeTab === 'gpu' ? connect() : disconnect()">
+    <h2 class="page-title">GPU Health &amp; Statistics</h2>
+
+    <template x-if="!enabled">
+        <div class="alert alert-info">
+            No NVIDIA GPU detected on this host. GPU monitoring is disabled.
+            <br><br>
+            If you have an NVIDIA GPU, ensure the NVIDIA drivers and Container Toolkit are installed,
+            then restart the dashboard container with <code>HAS_GPU=true</code>.
+        </div>
+    </template>
+
+    <template x-if="enabled && devices.length === 0">
+        <div class="alert alert-info">
+            Connecting to GPU monitor...
+        </div>
+    </template>
+
+    <template x-if="enabled && devices.length > 0">
+        <div class="gpu-grid">
+            <template x-for="gpu in devices" :key="gpu.index">
+                {% include "partials/gpu_card.html" %}
+            </template>
+        </div>
+    </template>
+</div>

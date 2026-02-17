@@ -1,0 +1,46 @@
+<div x-show="activeTab === 'commands'" x-data="commandCenter()" x-init="init()">
+    <h2 class="page-title">Command Center</h2>
+
+    <div class="section">
+        <h3>Quick Commands</h3>
+        <div class="preset-categories">
+            <template x-for="category in categories" :key="category">
+                <div class="preset-category">
+                    <h4 class="category-title" x-text="category.charAt(0).toUpperCase() + category.slice(1)"></h4>
+                    <div class="preset-grid">
+                        <template x-for="(preset, key) in getByCategory(category)" :key="key">
+                            <button class="command-btn" @click="runCommand(preset.command)"
+                                    :title="preset.description" :disabled="isRunning">
+                                <span class="command-btn-label" x-text="preset.label"></span>
+                            </button>
+                        </template>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>Custom Command</h3>
+        <form @submit.prevent="runCommand(customCmd)" class="command-form">
+            <div class="input-group">
+                <span class="input-prefix">$</span>
+                <input type="text" class="input-cli" x-model="customCmd"
+                       placeholder="Enter command (e.g., npx @nosana/cli@latest node view)"
+                       :disabled="isRunning"
+                       @keydown.up="historyUp()" @keydown.down="historyDown()">
+                <button type="submit" class="btn btn-primary" :disabled="isRunning || !customCmd.trim()">
+                    <span x-text="isRunning ? 'Running...' : 'Execute'"></span>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="section">
+        <div class="output-header">
+            <h3>Output</h3>
+            <button class="btn btn-sm" @click="clearOutput()">Clear</button>
+        </div>
+        <pre class="terminal" x-ref="terminal"><code x-text="output"></code></pre>
+    </div>
+</div>

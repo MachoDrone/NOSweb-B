@@ -1,0 +1,16 @@
+<div class="stat-card">
+    <div class="stat-card-header">
+        <span class="stat-card-title" x-text="title"></span>
+        <span class="stat-card-value" x-text="value"></span>
+    </div>
+    <div class="stat-card-bar">
+        <div class="stat-card-fill" :style="'width:' + percent + '%'"
+             :class="{
+                 'fill-ok': percent < 60,
+                 'fill-warn': percent >= 60 && percent < 85,
+                 'fill-danger': percent >= 85
+             }">
+        </div>
+    </div>
+    <div class="stat-card-detail" x-text="detail"></div>
+</div>
