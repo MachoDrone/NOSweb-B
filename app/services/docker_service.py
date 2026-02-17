@@ -1,21 +1,46 @@
+import logging
 import docker
 from docker.errors import NotFound, APIError
 from typing import Generator, Optional
+
+logger = logging.getLogger(__name__)
 
 
 class DockerService:
     """Docker SDK wrapper for container listing and log streaming."""
 
     def __init__(self, socket_path: str = "/var/run/docker.sock"):
+        self._socket_path = socket_path
+        self._connect()
+
+    def _connect(self):
+        """Attempt to connect to the Docker daemon."""
         try:
             self.client = docker.DockerClient(
-                base_url=f"unix://{socket_path}",
+                base_url=f"unix://{self._socket_path}",
                 timeout=10,
             )
+            # Verify the connection actually works
+            self.client.ping()
             self._available = True
-        except docker.errors.DockerException:
+        except Exception as e:
+            logger.warning("Docker connection failed: %s", e)
             self.client = None
             self._available = False
+
+    def _ensure_connected(self) -> bool:
+        """Reconnect if the previous connection dropped."""
+        if self._available:
+            try:
+                self.client.ping()
+                return True
+            except Exception:
+                logger.warning("Docker ping failed, reconnecting...")
+                self._available = False
+
+        # Try to reconnect
+        self._connect()
+        return self._available
 
     @property
     def available(self) -> bool:
@@ -23,12 +48,13 @@ class DockerService:
 
     def list_containers(self, pattern: str = "") -> list[dict]:
         """List all containers, optionally filtering by name pattern."""
-        if not self._available:
+        if not self._ensure_connected():
             return []
 
         try:
             containers = self.client.containers.list(all=True)
-        except APIError:
+        except APIError as e:
+            logger.warning("Failed to list containers: %s", e)
             return []
 
         result = []
@@ -53,7 +79,7 @@ class DockerService:
         self, container_id: str, tail: int = 200
     ) -> Optional[Generator]:
         """Stream logs from a container. Returns a blocking generator."""
-        if not self._available:
+        if not self._ensure_connected():
             return None
 
         try:
@@ -64,7 +90,8 @@ class DockerService:
                 tail=tail,
                 timestamps=True,
             )
-        except (NotFound, APIError):
+        except (NotFound, APIError) as e:
+            logger.warning("Failed to stream logs for %s: %s", container_id, e)
             return None
 
     def close(self):

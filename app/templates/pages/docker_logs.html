@@ -1,4 +1,4 @@
-<div x-show="activeTab === 'logs'" x-data="logViewer()" x-init="loadContainers()">
+<div x-show="activeTab === 'logs'" x-data="logViewer()" x-init="init()">
     <h2 class="page-title">Docker Logs</h2>
 
     <div class="log-controls">
@@ -8,12 +8,16 @@
                 <option :value="c.id" x-text="c.name + ' (' + c.status + ')'"></option>
             </template>
         </select>
+        <button class="btn btn-sm" @click="loadContainers()" title="Refresh container list">Refresh</button>
         <label class="checkbox-label">
             <input type="checkbox" x-model="autoScroll"> Auto-scroll
         </label>
         <button class="btn btn-sm" @click="clearLogs()">Clear</button>
-        <button class="btn btn-sm" @click="downloadLogs()">Download</button>
+        <button class="btn btn-sm" @click="downloadLogs()" :disabled="lines.length === 0">Download</button>
     </div>
+
+    <div x-show="loadError" class="log-error" x-text="loadError" style="color: #f59e0b; padding: 0.5rem 0; font-size: 0.875rem;"></div>
+    <div x-show="wsStatus" class="log-status" x-text="wsStatus" style="color: #94a3b8; padding: 0.25rem 0; font-size: 0.8rem;"></div>
 
     {% include "partials/log_viewer.html" %}
 </div>

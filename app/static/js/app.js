@@ -78,12 +78,34 @@ function logViewer() {
         lines: [],
         autoScroll: true,
         ws: null,
+        loadError: '',
+        wsStatus: '',
+
+        async init() {
+            await this.loadContainers();
+            // Refresh container list when tab becomes active
+            window.addEventListener('tab-changed', (e) => {
+                if (e.detail === 'logs') {
+                    this.loadContainers();
+                }
+            });
+        },
 
         async loadContainers() {
+            this.loadError = '';
             try {
                 const res = await fetch('/api/logs/containers');
-                this.containers = await res.json();
+                if (!res.ok) {
+                    this.loadError = `Failed to load containers (HTTP ${res.status})`;
+                    return;
+                }
+                const data = await res.json();
+                this.containers = data;
+                if (data.length === 0) {
+                    this.loadError = 'No containers found. Is the Docker socket mounted?';
+                }
             } catch (e) {
+                this.loadError = 'Cannot reach Docker service. Check socket mount.';
                 console.error('Failed to load containers:', e);
             }
         },
@@ -94,12 +116,15 @@ function logViewer() {
                 this.ws = null;
             }
             this.lines = [];
+            this.wsStatus = '';
 
             if (!this.selectedContainer) return;
 
+            this.wsStatus = 'Connecting...';
             this.ws = new WSManager(`/api/logs/ws/${this.selectedContainer}`, {
                 onMessage: (msg) => {
                     if (msg.type === 'log_line') {
+                        this.wsStatus = '';
                         this.lines.push(msg.data);
                         if (this.lines.length > 5000) this.lines.shift();
                         if (this.autoScroll) {
@@ -108,6 +133,16 @@ function logViewer() {
                                 if (el) el.scrollTop = el.scrollHeight;
                             });
                         }
+                    } else if (msg.type === 'error') {
+                        this.wsStatus = msg.data;
+                    }
+                },
+                onOpen: () => {
+                    this.wsStatus = 'Connected, waiting for logs...';
+                },
+                onClose: () => {
+                    if (this.wsStatus === 'Connected, waiting for logs...' || this.wsStatus === '') {
+                        this.wsStatus = 'Disconnected';
                     }
                 }
             });
@@ -119,10 +154,11 @@ function logViewer() {
         },
 
         downloadLogs() {
+            if (this.lines.length === 0) return;
             const blob = new Blob([this.lines.join('')], { type: 'text/plain' });
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
-            a.download = `${this.selectedContainer}-logs.txt`;
+            a.download = `${this.selectedContainer || 'container'}-logs.txt`;
             a.click();
             URL.revokeObjectURL(a.href);
         },

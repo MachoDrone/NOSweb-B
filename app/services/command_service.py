@@ -105,6 +105,27 @@ class CommandService:
         self.allowed_prefixes = allowed_prefixes
         self.allow_custom = allow_custom
         self.timeout = timeout
+        self._nsenter_available: bool | None = None
+
+    async def check_nsenter(self) -> bool:
+        """Probe whether nsenter can access host namespaces."""
+        if self._nsenter_available is not None:
+            return self._nsenter_available
+
+        try:
+            proc = await asyncio.create_subprocess_exec(
+                *self.NSENTER_PREFIX, "echo", "ok",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+            )
+            stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=5)
+            self._nsenter_available = (
+                proc.returncode == 0 and b"ok" in stdout
+            )
+        except Exception:
+            self._nsenter_available = False
+
+        return self._nsenter_available
 
     def validate_command(self, command: str) -> tuple[bool, str]:
         """Check if a command is allowed. Returns (allowed, reason)."""
@@ -136,6 +157,22 @@ class CommandService:
             yield f"[BLOCKED] {reason}\n"
             return
 
+        # Check if nsenter is available before attempting
+        nsenter_ok = await self.check_nsenter()
+        if not nsenter_ok:
+            yield (
+                "[ERROR] nsenter cannot access host namespaces.\n"
+                "\n"
+                "The container needs --privileged and --pid=host flags.\n"
+                "Re-run the installer or restart the container with:\n"
+                "\n"
+                "  docker run -d --pid=host --privileged \\\n"
+                "    -v /var/run/docker.sock:/var/run/docker.sock \\\n"
+                "    ... nosana-corelink:latest\n"
+                "\n"
+            )
+            return
+
         full_cmd = self.NSENTER_PREFIX + ["bash", "-c", command]
 
         try:
@@ -163,6 +200,6 @@ class CommandService:
             yield f"\n[Exit code: {process.returncode}]\n"
 
         except FileNotFoundError:
-            yield "[ERROR] nsenter not found. Is the container running with --pid=host?\n"
+            yield "[ERROR] nsenter not found. Is util-linux installed in the container?\n"
         except Exception as e:
             yield f"[ERROR] {str(e)}\n"

@@ -1,9 +1,11 @@
 import asyncio
+import logging
 from concurrent.futures import ThreadPoolExecutor
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Request
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 # Thread pool for blocking Docker SDK log reads
 _executor = ThreadPoolExecutor(max_workers=4)
@@ -24,6 +26,14 @@ async def stream_container_logs(
     await websocket.accept()
     docker_svc = websocket.app.state.docker_service
 
+    if not docker_svc.available:
+        await websocket.send_json({
+            "type": "error",
+            "data": "Docker service is not available. Check socket mount.",
+        })
+        await websocket.close()
+        return
+
     log_stream = docker_svc.stream_logs(container_id, tail=200)
     if log_stream is None:
         await websocket.send_json({
@@ -34,6 +44,7 @@ async def stream_container_logs(
         return
 
     loop = asyncio.get_event_loop()
+    cancelled = asyncio.Event()
 
     try:
         # Read from the blocking Docker log generator in a thread
@@ -44,6 +55,8 @@ async def stream_container_logs(
             try:
                 buffer = ""
                 for chunk in log_stream:
+                    if cancelled.is_set():
+                        break
                     decoded = chunk.decode("utf-8", errors="replace")
                     buffer += decoded
                     while "\n" in buffer:
@@ -52,19 +65,19 @@ async def stream_container_logs(
                             queue.put(line + "\n"), loop
                         )
                 # Flush remaining buffer
-                if buffer:
+                if buffer and not cancelled.is_set():
                     asyncio.run_coroutine_threadsafe(
                         queue.put(buffer), loop
                     )
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug("Log reader stopped: %s", e)
             finally:
                 asyncio.run_coroutine_threadsafe(
                     queue.put(None), loop
                 )
 
         # Start blocking reader in thread
-        future = loop.run_in_executor(_executor, _read_logs)
+        loop.run_in_executor(_executor, _read_logs)
 
         # Send log lines from the async queue
         while True:
@@ -80,8 +93,11 @@ async def stream_container_logs(
     except WebSocketDisconnect:
         pass
     except Exception as e:
+        logger.warning("Log stream error for %s: %s", container_id, e)
         try:
             await websocket.send_json({"type": "error", "data": str(e)})
             await websocket.close()
         except Exception:
             pass
+    finally:
+        cancelled.set()

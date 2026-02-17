@@ -115,10 +115,14 @@ launch_dashboard() {
     fi
 
     info "Launching Nosana CoreLink..."
+    # --privileged is required for nsenter to enter host namespaces
+    # (mount, UTS, IPC, net, PID) which enables the Command Center
+    # and host-level monitoring. --pid=host alone is not sufficient.
     docker run -d \
         --name "${CONTAINER_NAME}" \
         --restart unless-stopped \
         --pid=host \
+        --privileged \
         -p "0.0.0.0:${DASHBOARD_PORT}:8585" \
         -v "${DOCKER_SOCKET}:/var/run/docker.sock" \
         -v /etc/hostname:/etc/host_hostname:ro \
