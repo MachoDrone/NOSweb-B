@@ -40,12 +40,21 @@ async def stream_container_logs(
         queue = asyncio.Queue(maxsize=100)
 
         def _read_logs():
-            """Blocking reader that puts log chunks into async queue."""
+            """Blocking reader that buffers chunks into lines."""
             try:
+                buffer = ""
                 for chunk in log_stream:
                     decoded = chunk.decode("utf-8", errors="replace")
+                    buffer += decoded
+                    while "\n" in buffer:
+                        line, buffer = buffer.split("\n", 1)
+                        asyncio.run_coroutine_threadsafe(
+                            queue.put(line + "\n"), loop
+                        )
+                # Flush remaining buffer
+                if buffer:
                     asyncio.run_coroutine_threadsafe(
-                        queue.put(decoded), loop
+                        queue.put(buffer), loop
                     )
             except Exception:
                 pass

@@ -175,7 +175,7 @@ function commandCenter() {
         output: '',
         isRunning: false,
         isUpdating: false,
-        updateMsg: 'Downloading and building latest version...',
+        updateMsg: 'Downloading and rebuilding — this takes 2-5 minutes...',
         ws: null,
         history: [],
         historyIndex: -1,
@@ -256,10 +256,10 @@ function commandCenter() {
 
         async updateCoreLink() {
             if (this.isUpdating) return;
-            if (!confirm('Update CoreLink?\n\nThis will download the latest version, rebuild, and restart. The page will briefly disconnect.')) return;
+            if (!confirm('Update CoreLink?\n\nThis will download the latest version, rebuild, and restart.\nThis takes 2-5 minutes. Do not close this tab.')) return;
 
             this.isUpdating = true;
-            this.updateMsg = 'Downloading and building latest version...';
+            this.updateMsg = 'Downloading and rebuilding — this takes 2-5 minutes...';
 
             try {
                 const res = await fetch('/api/update/apply', { method: 'POST' });

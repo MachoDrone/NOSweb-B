@@ -23,8 +23,15 @@ class SystemService:
         disk = psutil.disk_usage("/")
         boot_time = datetime.fromtimestamp(psutil.boot_time())
 
+        # Read real hostname from mounted host file, fall back to container ID
+        try:
+            with open("/etc/host_hostname", "r") as f:
+                hostname = f.read().strip()
+        except FileNotFoundError:
+            hostname = platform.node()
+
         return {
-            "hostname": platform.node(),
+            "hostname": hostname,
             "os": f"{platform.system()} {platform.release()}",
             "uptime_seconds": (datetime.now() - boot_time).total_seconds(),
             "cpu": {

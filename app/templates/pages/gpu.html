@@ -4,10 +4,10 @@
 
     <template x-if="!enabled">
         <div class="alert alert-info">
-            No NVIDIA GPU detected on this host. GPU monitoring is disabled.
+            No NVIDIA GPU detected. GPU monitoring is disabled.
             <br><br>
-            If you have an NVIDIA GPU, ensure the NVIDIA drivers and Container Toolkit are installed,
-            then restart the dashboard container with <code>HAS_GPU=true</code>.
+            If you have an NVIDIA GPU, ensure NVIDIA drivers are installed on the host,
+            then restart CoreLink (the GPU is auto-detected at startup).
         </div>
     </template>
 

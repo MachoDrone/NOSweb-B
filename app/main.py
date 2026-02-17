@@ -10,12 +10,32 @@ from app.services.gpu_service import GPUService
 from app.routers import overview, system, gpu, docker_logs, commands, update
 
 
+async def _detect_gpu() -> bool:
+    """Auto-detect NVIDIA GPU on host via nsenter nvidia-smi."""
+    import asyncio
+    try:
+        proc = await asyncio.create_subprocess_exec(
+            "nsenter", "-t", "1", "-m", "-u", "-i", "-n", "-p", "--",
+            "nvidia-smi", "--query-gpu=name", "--format=csv,noheader",
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        stdout, _ = await asyncio.wait_for(proc.communicate(), timeout=5)
+        return proc.returncode == 0 and len(stdout.strip()) > 0
+    except Exception:
+        return False
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Initialize and teardown services."""
     app.state.settings = settings
     app.state.docker_service = DockerService(settings.DOCKER_SOCKET)
-    app.state.gpu_service = GPUService(enabled=settings.HAS_GPU)
+
+    # Auto-detect GPU if not explicitly set
+    has_gpu = settings.HAS_GPU or await _detect_gpu()
+    app.state.gpu_service = GPUService(enabled=has_gpu)
+
     yield
     app.state.docker_service.close()
     app.state.gpu_service.close()
