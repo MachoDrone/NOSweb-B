@@ -43,4 +43,21 @@
         </div>
         <pre class="terminal" x-ref="terminal"><code x-text="output"></code></pre>
     </div>
+
+    <div class="section">
+        <h3>Maintenance</h3>
+        <button class="update-btn" @click="updateCoreLink()" :disabled="isRunning || isUpdating">
+            <span x-text="isUpdating ? 'Updating...' : 'Update CoreLink'"></span>
+        </button>
+        <p class="update-hint">Pull latest code from GitHub, rebuild, and restart.</p>
+    </div>
+
+    <!-- Update overlay -->
+    <div class="update-overlay" x-show="isUpdating" x-transition>
+        <div class="update-overlay-content">
+            <div class="update-spinner"></div>
+            <h3>Updating CoreLink...</h3>
+            <p x-text="updateMsg"></p>
+        </div>
+    </div>
 </div>

@@ -7,7 +7,7 @@ from fastapi.templating import Jinja2Templates
 from app.config import settings, APP_VERSION
 from app.services.docker_service import DockerService
 from app.services.gpu_service import GPUService
-from app.routers import overview, system, gpu, docker_logs, commands
+from app.routers import overview, system, gpu, docker_logs, commands, update
 
 
 @asynccontextmanager
@@ -40,6 +40,7 @@ def create_app() -> FastAPI:
     app.include_router(gpu.router, prefix="/api/gpu", tags=["gpu"])
     app.include_router(docker_logs.router, prefix="/api/logs", tags=["logs"])
     app.include_router(commands.router, prefix="/api/commands", tags=["commands"])
+    app.include_router(update.router, prefix="/api/update", tags=["update"])
 
     @app.get("/")
     async def index(request: Request):

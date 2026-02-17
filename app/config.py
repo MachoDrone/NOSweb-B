@@ -1,6 +1,6 @@
 from pydantic_settings import BaseSettings
 
-APP_VERSION = "v0.00.1"
+APP_VERSION = "v0.00.2"
 
 
 class Settings(BaseSettings):
@@ -38,6 +38,10 @@ class Settings(BaseSettings):
     ]
     ALLOW_CUSTOM_COMMANDS: bool = True
     COMMAND_TIMEOUT: int = 30
+
+    # Update
+    REPO_TARBALL_URL: str = "https://github.com/MachoDrone/NOSweb-B/archive/refs/heads/main.tar.gz"
+    CONTAINER_NAME: str = "nosana-corelink"
 
     model_config = {"env_prefix": "NOSWEB_"}
 

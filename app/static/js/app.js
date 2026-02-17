@@ -174,6 +174,8 @@ function commandCenter() {
         customCmd: '',
         output: '',
         isRunning: false,
+        isUpdating: false,
+        updateMsg: 'Downloading and building latest version...',
         ws: null,
         history: [],
         historyIndex: -1,
@@ -250,6 +252,51 @@ function commandCenter() {
                 const el = this.$refs.terminal;
                 if (el) el.scrollTop = el.scrollHeight;
             });
+        },
+
+        async updateCoreLink() {
+            if (this.isUpdating) return;
+            if (!confirm('Update CoreLink?\n\nThis will download the latest version, rebuild, and restart. The page will briefly disconnect.')) return;
+
+            this.isUpdating = true;
+            this.updateMsg = 'Downloading and building latest version...';
+
+            try {
+                const res = await fetch('/api/update/apply', { method: 'POST' });
+                const data = await res.json();
+                if (data.status === 'error') {
+                    this.isUpdating = false;
+                    alert('Update failed: ' + data.message);
+                    return;
+                }
+            } catch (e) {
+                this.isUpdating = false;
+                alert('Failed to trigger update: ' + e.message);
+                return;
+            }
+
+            // Poll for completion — container will restart, so expect failures
+            let attempts = 0;
+            const maxAttempts = 60; // ~3 minutes
+            const poll = setInterval(async () => {
+                attempts++;
+                if (attempts > maxAttempts) {
+                    clearInterval(poll);
+                    this.isUpdating = false;
+                    this.updateMsg = 'Update timed out. Check the host for issues.';
+                    return;
+                }
+                try {
+                    const res = await fetch('/api/update/version');
+                    if (res.ok) {
+                        clearInterval(poll);
+                        this.updateMsg = 'Update complete! Reloading...';
+                        setTimeout(() => location.reload(), 1000);
+                    }
+                } catch {
+                    this.updateMsg = 'Waiting for new container to start...';
+                }
+            }, 3000);
         },
 
         destroy() {
