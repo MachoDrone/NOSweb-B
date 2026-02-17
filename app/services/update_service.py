@@ -44,8 +44,7 @@ docker run -d \
     --name "$CONTAINER" \
     --restart unless-stopped \
     --pid=host \
-    --cap-add=SYS_ADMIN \
-    --security-opt apparmor=unconfined \
+    --privileged \
     -p "0.0.0.0:${{PORT:-8585}}:8585" \
     -v /var/run/docker.sock:/var/run/docker.sock \
     -v /etc/hostname:/etc/host_hostname:ro \

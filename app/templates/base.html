@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nosana CoreLink</title>
-    <link rel="stylesheet" href="/static/css/main.css">
-    <link rel="stylesheet" href="/static/css/components.css">
+    <link rel="stylesheet" href="/static/css/main.css?v={{ app_version }}">
+    <link rel="stylesheet" href="/static/css/components.css?v={{ app_version }}">
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.3/dist/cdn.min.js"></script>
 </head>
 <body x-data="dashboard()" :class="{ 'dark': darkMode }" data-has-gpu="{{ has_gpu | lower }}">
@@ -19,7 +19,7 @@
         {% include "pages/commands.html" %}
     </main>
 
-    <script src="/static/js/websocket.js"></script>
-    <script src="/static/js/app.js"></script>
+    <script src="/static/js/websocket.js?v={{ app_version }}"></script>
+    <script src="/static/js/app.js?v={{ app_version }}"></script>
 </body>
 </html>

@@ -119,8 +119,7 @@ launch_dashboard() {
         --name "${CONTAINER_NAME}" \
         --restart unless-stopped \
         --pid=host \
-        --cap-add=SYS_ADMIN \
-        --security-opt apparmor=unconfined \
+        --privileged \
         -p "0.0.0.0:${DASHBOARD_PORT}:8585" \
         -v "${DOCKER_SOCKET}:/var/run/docker.sock" \
         -v /etc/hostname:/etc/host_hostname:ro \
