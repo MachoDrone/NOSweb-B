@@ -6,10 +6,11 @@ set -euo pipefail
 # Launched via: bash <(wget -qO- https://raw.githubusercontent.com/MachoDrone/NOSweb-B/main/install.sh)
 # ============================================================
 
-DASHBOARD_IMAGE="ghcr.io/machodrone/nosweb:latest"
+DASHBOARD_IMAGE="nosana-dashboard:latest"
 CONTAINER_NAME="nosana-dashboard"
 DASHBOARD_PORT="${NOSWEB_PORT:-8585}"
 DOCKER_SOCKET="/var/run/docker.sock"
+REPO_TARBALL="https://github.com/MachoDrone/NOSweb-B/archive/refs/heads/main.tar.gz"
 HAS_GPU=false
 
 # ============================================================
@@ -89,9 +90,24 @@ stop_existing() {
     fi
 }
 
+build_dashboard() {
+    local BUILD_DIR
+    BUILD_DIR=$(mktemp -d)
+
+    info "Downloading dashboard source..."
+    wget -qO- "${REPO_TARBALL}" | tar xz -C "${BUILD_DIR}" \
+        || error "Failed to download source from GitHub"
+
+    info "Building dashboard image (first run ~30s, updates ~10s)..."
+    docker build -q -t "${DASHBOARD_IMAGE}" "${BUILD_DIR}/NOSweb-B-main/" \
+        || error "Docker build failed"
+
+    rm -rf "${BUILD_DIR}"
+    ok "Dashboard image built"
+}
+
 launch_dashboard() {
-    info "Pulling latest dashboard image..."
-    docker pull "${DASHBOARD_IMAGE}" || error "Failed to pull dashboard image"
+    build_dashboard
 
     local GPU_FLAGS=""
     if [ "${HAS_GPU}" = true ]; then
@@ -158,7 +174,7 @@ sanity_canary_v1() {
     # Claude should report this function name, version,
     # and line number at the end of every reply.
     local CANARY_VERSION="1"
-    local CANARY_LINE="121"
+    local CANARY_LINE="172"
     return 0
 }
 # END OF SCRIPT — SANITY MARKER
