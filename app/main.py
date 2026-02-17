@@ -4,7 +4,7 @@ from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from app.config import settings
+from app.config import settings, APP_VERSION
 from app.services.docker_service import DockerService
 from app.services.gpu_service import GPUService
 from app.routers import overview, system, gpu, docker_logs, commands
@@ -46,6 +46,7 @@ def create_app() -> FastAPI:
         return templates.TemplateResponse("base.html", {
             "request": request,
             "has_gpu": settings.HAS_GPU,
+            "app_version": APP_VERSION,
         })
 
     return app

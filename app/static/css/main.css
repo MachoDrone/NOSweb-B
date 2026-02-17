@@ -12,12 +12,12 @@
     --text-secondary: #8892a6;
     --text-muted: #5c6478;
     --border-color: #2d3548;
-    --accent: #2e7d32;
-    --accent-hover: #388e3c;
-    --fill-ok: #2e7d32;
+    --accent: #22c55e;
+    --accent-hover: #16a34a;
+    --fill-ok: #22c55e;
     --fill-warn: #ffdd57;
     --fill-danger: #ff3860;
-    --status-running: #2e7d32;
+    --status-running: #22c55e;
     --status-stopped: #ff3860;
     --status-paused: #ffdd57;
     --nav-height: 56px;
@@ -89,6 +89,12 @@ body {
     font-weight: 600;
     font-size: 16px;
     color: var(--text-primary);
+}
+
+.nav-version {
+    font-size: 10px;
+    color: var(--text-muted);
+    font-weight: 400;
 }
 
 .nav-tabs {

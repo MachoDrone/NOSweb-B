@@ -1,5 +1,7 @@
 from pydantic_settings import BaseSettings
 
+APP_VERSION = "v0.00.1"
+
 
 class Settings(BaseSettings):
     # Server
