@@ -1,6 +1,6 @@
 from pydantic_settings import BaseSettings
 
-APP_VERSION = "v0.00.4"
+APP_VERSION = "v0.00.5"
 
 
 class Settings(BaseSettings):
