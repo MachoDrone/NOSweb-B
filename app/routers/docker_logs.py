@@ -1,6 +1,7 @@
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 
+from docker.errors import NotFound, APIError
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Request
 
 router = APIRouter()
@@ -24,11 +25,27 @@ async def stream_container_logs(
     await websocket.accept()
     docker_svc = websocket.app.state.docker_service
 
-    log_stream = docker_svc.stream_logs(container_id, tail=200)
+    try:
+        log_stream = docker_svc.stream_logs(container_id, tail=200)
+    except NotFound:
+        await websocket.send_json({
+            "type": "error",
+            "data": f"Container '{container_id}' not found.",
+        })
+        await websocket.close()
+        return
+    except APIError as e:
+        await websocket.send_json({
+            "type": "error",
+            "data": f"Docker error for '{container_id}': {e.explanation or str(e)}",
+        })
+        await websocket.close()
+        return
+
     if log_stream is None:
         await websocket.send_json({
             "type": "error",
-            "data": f"Container '{container_id}' not found or not available.",
+            "data": "Docker service is not available.",
         })
         await websocket.close()
         return
@@ -56,8 +73,10 @@ async def stream_container_logs(
                     asyncio.run_coroutine_threadsafe(
                         queue.put(buffer), loop
                     )
-            except Exception:
-                pass
+            except Exception as e:
+                asyncio.run_coroutine_threadsafe(
+                    queue.put({"__error__": str(e)}), loop
+                )
             finally:
                 asyncio.run_coroutine_threadsafe(
                     queue.put(None), loop
@@ -68,13 +87,20 @@ async def stream_container_logs(
 
         # Send log lines from the async queue
         while True:
-            line = await queue.get()
-            if line is None:
+            item = await queue.get()
+            if item is None:
+                break
+            if isinstance(item, dict) and "__error__" in item:
+                await websocket.send_json({
+                    "type": "error",
+                    "container": container_id,
+                    "data": f"Log stream interrupted: {item['__error__']}",
+                })
                 break
             await websocket.send_json({
                 "type": "log_line",
                 "container": container_id,
-                "data": line,
+                "data": item,
             })
 
     except WebSocketDisconnect:

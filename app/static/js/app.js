@@ -108,6 +108,8 @@ function logViewer() {
                                 if (el) el.scrollTop = el.scrollHeight;
                             });
                         }
+                    } else if (msg.type === 'error') {
+                        this.lines.push(`[ERROR] ${msg.data}\n`);
                     }
                 }
             });

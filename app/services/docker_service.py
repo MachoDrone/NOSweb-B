@@ -52,20 +52,21 @@ class DockerService:
     def stream_logs(
         self, container_id: str, tail: int = 200
     ) -> Optional[Generator]:
-        """Stream logs from a container. Returns a blocking generator."""
+        """Stream logs from a container. Returns a blocking generator.
+
+        Raises NotFound if the container does not exist.
+        Raises APIError on Docker daemon errors.
+        """
         if not self._available:
             return None
 
-        try:
-            container = self.client.containers.get(container_id)
-            return container.logs(
-                stream=True,
-                follow=True,
-                tail=tail,
-                timestamps=True,
-            )
-        except (NotFound, APIError):
-            return None
+        container = self.client.containers.get(container_id)
+        return container.logs(
+            stream=True,
+            follow=True,
+            tail=tail,
+            timestamps=True,
+        )
 
     def close(self):
         if self.client:
